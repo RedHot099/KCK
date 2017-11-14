@@ -5,64 +5,58 @@ from skimage.morphology import square
 import skimage as si
 import numpy as np
 from numpy import array
-import matplotlib.pyplot as pl
+import matplotlib.pyplot as plt
+import cv2
 
 #opencv find contour
 
-def show(*args):
+def process(img):
+    imgray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    #imgray = cv2.bilateralFilter(imgray,1,1,1)
+    eroded = cv2.erode(imgray, np.ones((11, 11)) )
+    dilated = cv2.dilate(eroded, np.ones((11, 11)) )
+    
+
+    edged = cv2.Canny(dilated,30,200)
+    (cnts, hierarchy) = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    for i in range(len(cnts)):
+        if hierarchy[0][i][3]==-1:
+            cv2.drawContours(img,[cnts[i]],-1,(0,255,0),3)
+    return img
+
+def show(args):
     #Show multiple images in a row
-    pl.figure(figsize=(20,12))
-    for i,img in enumerate(args):
-        pl.subplot(1, len(args), i+1)
+    fig = plt.figure(figsize=(20,len(args)*5))
+    for i,img in enumerate(args):       
+        ax = plt.subplot(len(args), 1, i+1)
+	ax.set_axis_off()
         io.imshow(img)
-#plt.show() 
+	
+    fig.savefig('my-planes.pdf')
 
-if __name__ == '__main__':
-    figure(figsize=(15,4))
-    io.imshow(io.imread('/media/student/B/FLS/Studia/KCK/samoloty/samolot00.jpg'))
-	eroded = morphology.erosion(arr, square(3))
-	morphology.dilation(eroded, square(3))
-coins = data.coins()
-binary = coins > 150
-show(coins, binary)
-eroded = Image(morphology.erosion(binary, square(3)))
-show(binary, eroded)
-dilated = Image(morphology.dilation(binary, square(3)))
-show(binary, dilated)
-dilated = Image(morphology.dilation(binary, square(5)))
-eroded = Image(morphology.erosion(dilated, square(5)))
-show(binary, dilated, eroded)
-result = eroded
-opened = morphology.opening(result, square(2))
-show(result, opened)
-horse = rgb2gray(255 - data.horse()) > 0.5
+#def process(img):
+    #eroded = morphology.erosion(img, square(5))
+    #dilated = morphology.dilation(eroded, square(5))
+    #opened = morphology.opening(dilated, square(2))
+    #count = 3
+    #eroded = opened
+    #for i in range(count):
+    #    eroded = morphology.erosion(eroded, square(5))
+    #dilated = eroded
+    #for i in range(count):
+    #    dilated = morphology.dilation(dilated, square(5))
+    #img = rgb2gray(1 - dilated)
+    #imgray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    #ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+    #img2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #return img2,contours
 
-count = 3
-eroded = horse
-for i in range(count):
-    eroded = morphology.erosion(eroded, square(5))
+def get_number(n):
+    return str(n//10) + str(n%10)
 
-dilated = eroded
-for i in range(count):
-    dilated = morphology.dilation(dilated, square(5))
-
-show(horse, eroded, dilated)
-
-
-horse = rgb2gray(255 - data.horse()) > 0.5
-
-count = 3
-dilated = horse
-for i in range(count):
-    dilated = morphology.dilation(dilated, square(5))
-
-eroded = dilated
-for i in range(count):
-    eroded = morphology.erosion(eroded, square(5))
-
-show(horse, dilated, eroded)
-
-
-
-
-
+if __name__ == '__main__':    
+    images = []
+    for i in range(18):
+        img = cv2.imread('/home/paulina/Desktop/Studia/KCK/Planes/samolot' + get_number(i) + '.jpg')
+	images.append(process(img))
+    show(images)
